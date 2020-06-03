@@ -3,8 +3,8 @@ import 'package:html/parser.dart' show parse;
 import 'package:http/http.dart';
 
 class HelperGetData {
-  getDocumentFromURL(String url) async {
-    Map<String, dynamic> _return = Map();
+  getListOfResultsFromURL(String url) async {
+    var _return = Map();
     var listPTM = List();
     var listPT = List();
     var listPTV = List();
@@ -14,6 +14,7 @@ class HelperGetData {
     String result = response.body.toString();
     var document = parse(result);
     var tbody = document.getElementsByTagName("tbody");
+    var captions = document.getElementsByTagName('caption');
     for (int col = 0; col < 6; col++) {
       for (int line = 0; line < 7; line++) {
         if (col == 1) listPTM.add(tbody[0].children[line].children[col].text);
@@ -28,6 +29,7 @@ class HelperGetData {
     _return["PTV"] = listPTV;
     _return["PTN"] = listPTN;
     _return["COR"] = listCOR;
+    _return['DATE'] = captions[0].text;
 
     return _return;
 

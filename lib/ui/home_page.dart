@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jogobichoresultados/helpers/helper_get_data.dart';
 import 'package:jogobichoresultados/helpers/helper_lista_bichos.dart';
@@ -8,21 +9,24 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  //variables
-  var listPTM = List();
+  //Controllers
+  final _pageController = PageController(initialPage: 0);
+  //Variables
+  String _defaultTitleBar = 'Jogo do Bicho';
+  String _titleBar = 'Jogo do Bicho';
   int _indexBottom = 0;
-  int _lenthMap;
+  List listPTM, listPT, listPTV, listPTN, listCOR;
+  var mapAnimals = Map<String, dynamic>();
+  var _options = ['PTM', 'PT', 'PTV', 'PTN', 'Corujinha'];
+  int _lengthMap;
   HelperListaBichos helperList = HelperListaBichos();
   HelperGetData helperGetData = HelperGetData();
 
+  //Função chamada na abertuda do APP
   @override
   void initState() {
     super.initState();
-    helperGetData
-        .getDocumentFromURL("https://www.ojogodobicho.com/deu_no_poste.htm")
-        .then((value) {
-      listPTM = value["PTM"];
-    });
+//    _getDataAsync();
   }
 
   @override
@@ -32,18 +36,22 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          "Resultado Jogo do Bicho",
+          "Resultado $_titleBar",
           style: TextStyle(fontSize: 30.0),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         onTap: (index) {
+//          debugPrint('VALOR DO INDEX CHAMADO: $index');
           setState(() {
+            if (_indexBottom == 0) _titleBar = _defaultTitleBar;
+            if (_indexBottom == 1) _pageController.jumpToPage(0);
             _indexBottom = index;
           });
         },
         currentIndex: _indexBottom,
         elevation: 5.0,
+        //Opções da barra inferior
         items: <BottomNavigationBarItem>[
           //Lista de Itens do Bottom Navigation Bar
           BottomNavigationBarItem(
@@ -58,7 +66,7 @@ class _HomePageState extends State<HomePage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.plus_one,
+              Icons.attach_money,
               size: 30.0,
             ),
             title: Text(
@@ -68,37 +76,98 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+      //Verificação de qual 'body' será chamado de acordo com bottom selecionado
       body: _indexBottom == 0
-          ? _getFutureBuilderList()
-          : listPTM.length > 0
-              ? _getFutureBuilderResults(listPTM)
-              : Center(
-                  child: IconButton(
-                      icon: Icon(
-                        Icons.refresh,
-                        size: 50.0,
+          ? _getFutureBuilderListAnimals()
+          //verificação se as listas de resultados carregaram
+          : FutureBuilder(
+              future: helperGetData.getListOfResultsFromURL(
+                  "https://www.ojogodobicho.com/deu_no_poste.htm"),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return PageView(
+                    onPageChanged: (page) {
+                      setState(() {
+                        if (page != 0) _titleBar = _options[page - 1];
+                        if (page == 0) _titleBar = _defaultTitleBar;
+                      });
+                    },
+                    controller: _pageController,
+                    children: <Widget>[
+                      //Page -> 0
+                      SingleChildScrollView(
+                        child: Column(
+                          children: <Widget>[
+                            Container(
+                              alignment: Alignment.center,
+                              margin: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0),
+                              width: 200,
+                              color: Colors.lightBlue,
+                              child: Text(
+                                'Resultado:\n${snapshot.data['DATE']}',
+                                style: _styleText,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            //Lista de botões para avanço direto
+                            _getButtonResult('PTM', 1),
+                            _getButtonResult('PT', 2),
+                            _getButtonResult('PTV', 3),
+                            _getButtonResult('PTN', 4),
+                            _getButtonResult('CORUJINHA', 5),
+                          ],
+                        ),
                       ),
-                      onPressed: () {
-                        setState(() {});
-                      }),
-                ),
+                      //Page -> 1
+                      _getFutureBuilderListResults(snapshot.data['PTM']),
+                      //Page -> 2
+                      _getFutureBuilderListResults(snapshot.data['PT']),
+                      //Page -> 3
+                      _getFutureBuilderListResults(snapshot.data['PTV']),
+                      //Page -> 4
+                      _getFutureBuilderListResults(snapshot.data['PTN']),
+                      //Page -> 5
+                      _getFutureBuilderListResults(snapshot.data['COR']),
+                    ],
+                  );
+                } else if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation(Colors.lightBlue),
+                    ),
+                  );
+                } else {
+                  return Center(
+                    child: IconButton(
+                        iconSize: 50.0,
+                        icon: Icon(
+                          Icons.refresh,
+                        ),
+                        onPressed: () {
+                          setState(() {});
+                        }),
+                  );
+                }
+              }),
     );
   }
 
-  Widget _getFutureBuilderList() {
+  //Exibe a lista dos animais obtidos nos assets
+  Widget _getFutureBuilderListAnimals() {
     return FutureBuilder(
       future: helperList.getMapAnimals(),
       builder:
           (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
         if (snapshot.hasData) {
-          _lenthMap = snapshot.data.length;
+          _lengthMap = snapshot.data.length;
           return ListView.builder(
-            itemCount: _lenthMap,
+            itemCount: _lengthMap,
             itemBuilder: (context, index) {
               return Card(
                 margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
                 elevation: 10.0,
-                color: Colors.blueAccent,
+                color: Colors.lightBlue,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 5.0,
@@ -120,7 +189,9 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ],
                       ),
-                      Divider(),
+                      Divider(
+                        color: Colors.lightBlue,
+                      ),
                       Text(
                         "Dezenas: ${helperList.getNumbersByGroup(index + 1).toString()}",
                         style: _styleText,
@@ -131,22 +202,36 @@ class _HomePageState extends State<HomePage> {
               );
             },
           );
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+              child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlue),
+          ));
         } else {
-          return CircularProgressIndicator();
+          return Center(
+            child: IconButton(
+                iconSize: 50.0,
+                icon: Icon(
+                  Icons.refresh,
+                ),
+                onPressed: () {
+                  setState(() {});
+                }),
+          );
         }
       },
     );
   }
 
-  //Exibe lista dos resultados PTM
-  Widget _getFutureBuilderResults(List list) {
+  //Exibe lista dos resultados passados
+  Widget _getFutureBuilderListResults(List list) {
     return ListView.builder(
         itemCount: list.length,
         itemBuilder: (context, index) {
           return Card(
-            margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+            margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
             elevation: 10.0,
-            color: Colors.blueAccent,
+            color: Colors.lightBlue,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 5.0,
@@ -159,7 +244,7 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Text(
-                        "$index prêmio ${list[index].toString()}",
+                        "${index + 1}º prêmio ${list[index].toString()}",
                         style: _styleText,
                       )
                     ],
@@ -171,6 +256,40 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
+  //Botão para ir direto ao resultado especifico
+  Widget _getButtonResult(String title, int page) {
+    return Container(
+      width: 200,
+      margin: EdgeInsets.all(20.0),
+      child: RaisedButton(
+          color: Colors.lightBlue,
+          elevation: 5.0,
+          padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+          child: Text(
+            title,
+            style: _styleText,
+          ),
+          onPressed: () {
+            _pageController.jumpToPage(page);
+          }),
+    );
+  }
+
+  //Estilo de texto
   TextStyle _styleText = TextStyle(
       color: Colors.white, fontSize: 25.0, fontWeight: FontWeight.bold);
+
+  //Função que possivelmente usarei para criar um cache dos resultados
+  void _getDataAsync() {
+    helperGetData
+        .getListOfResultsFromURL(
+            "https://www.ojogodobicho.com/deu_no_poste.htm")
+        .then((value) {
+      listPTM = value["PTM"];
+      listPT = value['PT'];
+      listPTV = value['PTV'];
+      listPTN = value['PTN'];
+      listCOR = value['COR'];
+    });
+  }
 }
