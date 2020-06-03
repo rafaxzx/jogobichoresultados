@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jogobichoresultados/helpers/helper_get_data.dart';
 import 'package:jogobichoresultados/helpers/helper_lista_bichos.dart';
@@ -11,7 +10,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   //Controllers
   final _pageController = PageController(initialPage: 0);
+
   //Variables
+  var _snapshotAnimals = Map<String, dynamic>();
   String _defaultTitleBar = 'Jogo do Bicho';
   String _titleBar = 'Jogo do Bicho';
   int _indexBottom = 0;
@@ -161,6 +162,7 @@ class _HomePageState extends State<HomePage> {
           (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
         if (snapshot.hasData) {
           _lengthMap = snapshot.data.length;
+          _snapshotAnimals.addAll(snapshot.data);
           return ListView.builder(
             itemCount: _lengthMap,
             itemBuilder: (context, index) {
@@ -179,6 +181,10 @@ class _HomePageState extends State<HomePage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: <Widget>[
+                          Image.asset(
+                            'images/${snapshot.data[(index + 1).toString()]}.png',
+                            scale: 1.0,
+                          ),
                           Text(
                             snapshot.data[(index + 1).toString()],
                             style: _styleText,
@@ -228,6 +234,7 @@ class _HomePageState extends State<HomePage> {
     return ListView.builder(
         itemCount: list.length,
         itemBuilder: (context, index) {
+          var _animalGroup = int.parse(list[index].toString().split('-')[1]);
           return Card(
             margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
             elevation: 10.0,
@@ -241,12 +248,14 @@ class _HomePageState extends State<HomePage> {
                 children: <Widget>[
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: <Widget>[
                       Text(
                         "${index + 1}º prêmio ${list[index].toString()}",
                         style: _styleText,
-                      )
+                      ),
+                      Image.asset(
+                          'images/${_snapshotAnimals[_animalGroup.toString()]}.png')
                     ],
                   ),
                 ],
