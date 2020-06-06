@@ -11,24 +11,18 @@ class _HomePageState extends State<HomePage> {
   //Controllers
   final _pageController = PageController(initialPage: 0);
 
-  //Variables
-  var _snapshotAnimals = Map<String, dynamic>();
+  //Variables for state manipulation and display
+  Map<String, dynamic> _snapshotAnimals = Map<String, dynamic>();
   String _defaultTitleBar = 'Jogo do Bicho';
   String _titleBar = 'Jogo do Bicho';
-  int _indexBottom = 0;
+  int _indexBottomNavigationBar = 0;
   List listPTM, listPT, listPTV, listPTN, listCOR;
-  var mapAnimals = Map<String, dynamic>();
-  var _options = ['PTM', 'PT', 'PTV', 'PTN', 'Corujinha'];
-  int _lengthMap;
-  HelperListaBichos helperList = HelperListaBichos();
-  HelperGetData helperGetData = HelperGetData();
+  Map<String, dynamic> mapAnimals = Map<String, dynamic>();
+  List<String> _optionsOfResults = ['PTM', 'PT', 'PTV', 'PTN', 'Corujinha'];
 
-  //Função chamada na abertuda do APP
-  @override
-  void initState() {
-    super.initState();
-//    _getDataAsync();
-  }
+  //Instances of useful helpers ;)
+  HelperListAnimals _helperListOfAnimals = HelperListAnimals();
+  HelperGetDataFromWeb _helperGetDataFromWeb = HelperGetDataFromWeb();
 
   @override
   Widget build(BuildContext context) {
@@ -37,31 +31,30 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          "Resultado $_titleBar",
+          'Resultado $_titleBar',
           style: TextStyle(fontSize: 30.0),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         onTap: (index) {
-//          debugPrint('VALOR DO INDEX CHAMADO: $index');
           setState(() {
-            if (_indexBottom == 0) _titleBar = _defaultTitleBar;
-            if (_indexBottom == 1) _pageController.jumpToPage(0);
-            _indexBottom = index;
+            if (_indexBottomNavigationBar == 0) _titleBar = _defaultTitleBar;
+            if (_indexBottomNavigationBar == 1) _pageController.jumpToPage(0);
+            _indexBottomNavigationBar = index;
           });
         },
-        currentIndex: _indexBottom,
+        currentIndex: _indexBottomNavigationBar,
         elevation: 5.0,
-        //Opções da barra inferior
+        //Options of bottom bar
         items: <BottomNavigationBarItem>[
-          //Lista de Itens do Bottom Navigation Bar
+          //List of items of bottom navigation bar
           BottomNavigationBarItem(
             icon: Icon(
               Icons.pets,
               size: 30.0,
             ),
             title: Text(
-              "Bichos",
+              'Bichos',
               style: TextStyle(fontSize: 25.0),
             ),
           ),
@@ -71,25 +64,24 @@ class _HomePageState extends State<HomePage> {
               size: 30.0,
             ),
             title: Text(
-              "Resultados",
+              'Resultados',
               style: TextStyle(fontSize: 25.0),
             ),
           ),
         ],
       ),
-      //Verificação de qual 'body' será chamado de acordo com bottom selecionado
-      body: _indexBottom == 0
+      //Decision of which 'body' will be called for that respective bottom navigation index.
+      body: _indexBottomNavigationBar == 0
           ? _getFutureBuilderListAnimals()
-          //verificação se as listas de resultados carregaram
           : FutureBuilder(
-              future: helperGetData.getListOfResultsFromURL(
-                  "https://www.ojogodobicho.com/deu_no_poste.htm"),
+              future: _helperGetDataFromWeb.getListOfResultsFromURL(
+                  'https://www.ojogodobicho.com/deu_no_poste.htm'),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return PageView(
                     onPageChanged: (page) {
                       setState(() {
-                        if (page != 0) _titleBar = _options[page - 1];
+                        if (page != 0) _titleBar = _optionsOfResults[page - 1];
                         if (page == 0) _titleBar = _defaultTitleBar;
                       });
                     },
@@ -110,7 +102,7 @@ class _HomePageState extends State<HomePage> {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            //Lista de botões para avanço direto
+                            //List of buttons
                             _getButtonResult('PTM', 1),
                             _getButtonResult('PT', 2),
                             _getButtonResult('PTV', 3),
@@ -154,17 +146,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  //Exibe a lista dos animais obtidos nos assets
+  //Displays a list of the animals selected in the assets
   Widget _getFutureBuilderListAnimals() {
     return FutureBuilder(
-      future: helperList.getMapAnimals(),
+      future: _helperListOfAnimals.getMapAnimals(),
       builder:
           (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
         if (snapshot.hasData) {
-          _lengthMap = snapshot.data.length;
           _snapshotAnimals.addAll(snapshot.data);
           return ListView.builder(
-            itemCount: _lengthMap,
+            itemCount: snapshot.data.length,
             itemBuilder: (context, index) {
               return Card(
                 margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
@@ -172,9 +163,7 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.lightBlue,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 5.0,
-                    vertical: 25.0,
-                  ),
+                      horizontal: 5.0, vertical: 25.0),
                   child: Column(
                     children: <Widget>[
                       Row(
@@ -190,7 +179,7 @@ class _HomePageState extends State<HomePage> {
                             style: _styleText,
                           ),
                           Text(
-                            "Grupo ${index + 1}",
+                            'Grupo ${index + 1}',
                             style: _styleText,
                           ),
                         ],
@@ -199,7 +188,7 @@ class _HomePageState extends State<HomePage> {
                         color: Colors.lightBlue,
                       ),
                       Text(
-                        "Dezenas: ${helperList.getNumbersByGroup(index + 1).toString()}",
+                        'Dezenas: ${_helperListOfAnimals.getNumbersByGroup(index + 1).toString()}',
                         style: _styleText,
                       )
                     ],
@@ -229,7 +218,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  //Exibe lista dos resultados passados
+  //Displays list of past results
   Widget _getFutureBuilderListResults(List list) {
     return ListView.builder(
         itemCount: list.length,
@@ -251,7 +240,7 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: <Widget>[
                       Text(
-                        "${index + 1}º prêmio ${list[index].toString()}",
+                        '${index + 1}º prêmio ${list[index].toString()}',
                         style: _styleText,
                       ),
                       Image.asset(
@@ -265,7 +254,7 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
-  //Botão para ir direto ao resultado especifico
+  //Button to jump to the specific result
   Widget _getButtonResult(String title, int page) {
     return Container(
       width: 200,
@@ -284,15 +273,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  //Estilo de texto
+  //Text style
   TextStyle _styleText = TextStyle(
       color: Colors.white, fontSize: 25.0, fontWeight: FontWeight.bold);
 
-  //Função que possivelmente usarei para criar um cache dos resultados
+  //Function that I will possibly use to cache results
+  /*
   void _getDataAsync() {
-    helperGetData
+    _helperGetDataFromWeb
         .getListOfResultsFromURL(
-            "https://www.ojogodobicho.com/deu_no_poste.htm")
+            'https://www.ojogodobicho.com/deu_no_poste.htm')
         .then((value) {
       listPTM = value["PTM"];
       listPT = value['PT'];
@@ -300,5 +290,5 @@ class _HomePageState extends State<HomePage> {
       listPTN = value['PTN'];
       listCOR = value['COR'];
     });
-  }
+  }*/
 }

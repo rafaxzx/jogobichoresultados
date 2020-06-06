@@ -1,14 +1,14 @@
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 
-class HelperListaBichos {
+class HelperListAnimals {
   Future<Map<String, dynamic>> getMapAnimals() async {
     var jsonString = await rootBundle.loadString('assets/bichos.json');
     var result = jsonDecode(jsonString);
     return result;
   }
 
-  int getGroupNumber(int number) {
+  int getGroupOfANumber(int number) {
     int mod = number % 4;
     double quocient = number / 4;
 

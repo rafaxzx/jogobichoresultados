@@ -1,9 +1,8 @@
 import 'package:html/parser.dart' show parse;
-//import 'package:html/dom.dart';
 import 'package:http/http.dart';
 
-class HelperGetData {
-  getListOfResultsFromURL(String url) async {
+class HelperGetDataFromWeb {
+  Future<Map<dynamic, dynamic>> getListOfResultsFromURL(String url) async {
     var _return = Map();
     var listPTM = List();
     var listPT = List();
@@ -33,7 +32,7 @@ class HelperGetData {
 
     return _return;
 
-    //DEBUG das LISTAS
+    //DEBUG of lists
 //    print(listPTM);
 //    print(listPT);
 //    print(listPTV);
