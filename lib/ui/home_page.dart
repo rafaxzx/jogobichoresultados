@@ -112,15 +112,25 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       //Page -> 1
-                      _getFutureBuilderListResults(snapshot.data['PTM']),
+                      snapshot.data['PTM'] != []
+                          ? _getFutureBuilderListResults(snapshot.data['PTM'])
+                          : null,
                       //Page -> 2
-                      _getFutureBuilderListResults(snapshot.data['PT']),
+                      snapshot.data['PT'] != []
+                          ? _getFutureBuilderListResults(snapshot.data['PT'])
+                          : null,
                       //Page -> 3
-                      _getFutureBuilderListResults(snapshot.data['PTV']),
+                      snapshot.data['PTV'] != []
+                          ? _getFutureBuilderListResults(snapshot.data['PTV'])
+                          : null,
                       //Page -> 4
-                      _getFutureBuilderListResults(snapshot.data['PTN']),
+                      snapshot.data['PTN'] != []
+                          ? _getFutureBuilderListResults(snapshot.data['PTN'])
+                          : null,
                       //Page -> 5
-                      _getFutureBuilderListResults(snapshot.data['COR']),
+                      snapshot.data['COR'] != []
+                          ? _getFutureBuilderListResults(snapshot.data['COR'])
+                          : null,
                     ],
                   );
                 } else if (snapshot.connectionState ==
